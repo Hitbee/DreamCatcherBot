@@ -295,11 +295,12 @@ client.on("message", (msg) => {
   }
 });
 
+//음악 봇
 client.on("message", async (message) => {
   // Voice only works in guilds, if the message does not come from a guild,
   // we ignore it
   if (!message.guild) return;
-  if (message.content === "*노래시작") {
+  if (message.content === "*play") {
     const XLSX = require("xlsx");
     const workbook = XLSX.readFile("music.xlsx");
     const ws = workbook.Sheets[workbook.SheetNames[0]];
@@ -315,13 +316,13 @@ client.on("message", async (message) => {
     ws["A7"].v = ws["A8"].v;
     ws["A8"].v = ws["A9"].v;
     ws["A9"].v = ws["A10"].v;
-    ws["A10"].v = ".";
+    ws["A10"].v = "NULL";
     if (i > 1) {
       i--;
     }
     ws["B1"].v = i;
     XLSX.writeFile(workbook, "music.xlsx");
-    if (_play !== ".") {
+    if (_play !== "NULL") {
       if (message.member.voice.channel) {
         message.channel.send("노래가 시작됩니다.")
         const connection = await message.member.voice.channel.join();
@@ -341,7 +342,7 @@ client.on("message", async (message) => {
       message.channel.send("리스트에 노래가 없습니다.");
     }
   }
-  if (message.content.startsWith("*노래추가")) {
+  if (message.content.startsWith("*add")) {
     const XLSX = require("xlsx");
     const workbook = XLSX.readFile("music.xlsx");
 
@@ -350,21 +351,22 @@ client.on("message", async (message) => {
     if (message.content.charAt(0) === "*") {
       message.content = message.content.substr(1);
     }
-    if (message.content.charAt(0) === "노") {
+    if (message.content.charAt(0) === "a") {
       message.content = message.content.substr(1);
     }
-    if (message.content.charAt(0) === "래") {
+    if (message.content.charAt(0) === "d") {
       message.content = message.content.substr(1);
     }
-    if (message.content.charAt(0) === "추") {
+    if (message.content.charAt(0) === "d") {
       message.content = message.content.substr(1);
     }
-    if (message.content.charAt(0) === "가") {
-      message.content = message.content.substr(1);
-    }
-    if (i === 11) {
+
+    if (i === 11) 
+    {
       message.channel.send("대기열이 가득 찼습니다.");
-    } else {
+    }
+     else 
+     {
       ws[`A${i}`].v = message.content;
       i++;    
       ws["B1"].v = i;
@@ -373,13 +375,13 @@ client.on("message", async (message) => {
     }
 
   }
-  if (message.content === "*노래리스트") {
+  if (message.content === "*list") {
     const XLSX = require("xlsx");
     const workbook = XLSX.readFile("music.xlsx");
 
     var ws = workbook.Sheets[workbook.SheetNames[0]];
     const embed = new MessageEmbed()
-      .setTitle("노래 목록")
+      .setTitle("Song List")
       .setColor(0x9986ee)
       .addField("1번째노래", `${ws["A1"].v}`)
       .addField("2번째노래", `${ws["A2"].v}`)
@@ -392,6 +394,19 @@ client.on("message", async (message) => {
       .addField("9번째노래", `${ws["A9"].v}`)
       .addField("10번째노래", `${ws["A10"].v}`);
     message.channel.send(embed);
+  }
+
+  if(message.content === "*reset"){
+    const XLSX = require("xlsx");
+    const workbook = XLSX.readFile("music.xlsx");
+
+    var ws = workbook.Sheets[workbook.SheetNames[0]];
+    for(i=1; i<11; i++)
+    {
+      ws[`A${i}`].v = 'NULL';
+    }
+    ws['B1'].v = '1';
+    message.content.send('대기열 초기화 완료.');
   }
 });
 client.login(token.token);
