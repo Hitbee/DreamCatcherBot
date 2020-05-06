@@ -104,4 +104,6 @@ dist
 .tern-port
 
 .idea
-/node_modules
+node_modules
+*.xlsx
+*.json
