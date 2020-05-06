@@ -2,6 +2,7 @@
 //const client = new Discord.Client();
 const { Client, MessageEmbed } = require("discord.js");
 const client = new Client();
+const ytdl = require("ytdl-core");
 const token = require("./token.json");
 
 client.on("ready", () => {
@@ -30,18 +31,18 @@ client.on("message", (msg) => {
 //오늘의운세
 client.on("message", (msg) => {
   if (msg.content === "*오늘의운세") {
-    const XLSX = require("xlsx");
-    const workbook = XLSX.readFile("todaysluck.xlsx");
-    const todaylucky = workbook.SheetNames[0];
-    const luckyday = workbook.Sheets[todaylucky];
+    var XLSX = require("xlsx");
+    var workbook = XLSX.readFile("todaysluck.xlsx");
+    var todaylucky = workbook.SheetNames[0];
+    var luckyday = workbook.Sheets[todaylucky];
 
     function makeRandom(min, max) {
-      const RandVal = Math.floor(Math.random() * (max - min + 1)) + min;
+      var RandVal = Math.floor(Math.random() * (max - min + 1)) + min;
       return RandVal;
     }
-    const A = makeRandom(1, 15);
-    const dbchooser = `A${A}`;
-    const luck = luckyday[`${dbchooser}`].v;
+    var A = makeRandom(1, 15);
+    var dbchooser = `A${A}`;
+    var luck = luckyday[`${dbchooser}`].v;
 
     const embed = new MessageEmbed()
       .setTitle("오늘의운세")
@@ -80,13 +81,13 @@ client.on("guildMemberRemove", (member) => {
 //사연기재 사연받기
 client.on("message", (msg) => {
   if (msg.channel.type == "dm") {
-    if (msg.content.startsWith(token.prefix)) {
+    if (msg.content.startsWith(token.prifix)) {
       const XLSX = require("xlsx");
       const workbook = XLSX.readFile("astory.xlsx");
-      const ws = workbook.Sheets[workbook.SheetNames[0]];
-      let i = ws["B1"].v; // 만들어진 갯수
-      const Anum = i + 1;
-      const A = `A${Anum}`;
+      var ws = workbook.Sheets[workbook.SheetNames[0]];
+      var i = ws["B1"].v; // 만들어진 갯수
+      var Anum = i + 1;
+      var A = `A${Anum}`;
 
       if (!ws[`${A}`]) {
         ws[`${A}`] = {};
@@ -132,21 +133,21 @@ client.on("message", (msg) => {
 
 //사연기재 사연출력
 client.on("message", (msg) => {
-  if (msg.channel.name === "dreamcatcher-ssul🐦") {
-    if (msg.content === "*사연출력") {
+  if (msg.content === "*사연출력") {
+    if (msg.channel.name === "dreamcatcher-ssul🐦") {
       const XLSX = require("xlsx");
       const workbook = XLSX.readFile("astory.xlsx");
-      const ws = workbook.Sheets[workbook.SheetNames[0]];
+      var ws = workbook.Sheets[workbook.SheetNames[0]];
       //var reset = '사연1';
-      let i = Number(ws["B2"].v); // 삭제된 갯수
-      const Anum = i + 1; // 1번부터
-      const A = `A${Anum}`; // A1번부터 출력
-      const sender = ws[`${A}`].v; // A1번부터 있는 데이터 읽어오기
+      var i = Number(ws["B2"].v); // 삭제된 갯수
+      var Anum = i + 1; // 1번부터
+      var A = `A${Anum}`; // A1번부터 출력
+      var sender = ws[`${A}`].v; // A1번부터 있는 데이터 읽어오기
 
       if (sender === "사연1") {
         msg.channel.send("기재된 사연이 없습니다.");
       } else {
-        const gongbaek = `사연${Anum}`;
+        var gongbaek = `사연1`;
 
         const embed = new MessageEmbed()
           .setTitle("익명의 사연")
@@ -294,6 +295,105 @@ client.on("message", (msg) => {
   }
 });
 
+client.on("message", async (message) => {
+  // Voice only works in guilds, if the message does not come from a guild,
+  // we ignore it
+  if (!message.guild) return;
+  if (message.content === "*노래시작") {
+    const XLSX = require("xlsx");
+    const workbook = XLSX.readFile("music.xlsx");
+    const ws = workbook.Sheets[workbook.SheetNames[0]];
+    _play = ws["A1"].v;
+    i = ws["B1"].v;
+
+    ws["A1"].v = ws["A2"].v;
+    ws["A2"].v = ws["A3"].v;
+    ws["A3"].v = ws["A4"].v;
+    ws["A4"].v = ws["A5"].v;
+    ws["A5"].v = ws["A6"].v;
+    ws["A6"].v = ws["A7"].v;
+    ws["A7"].v = ws["A8"].v;
+    ws["A8"].v = ws["A9"].v;
+    ws["A9"].v = ws["A10"].v;
+    ws["A10"].v = ".";
+    if (i > 1) {
+      i--;
+    }
+    ws["B1"].v = i;
+    XLSX.writeFile(workbook, "music.xlsx");
+    if (_play !== ".") {
+      if (message.member.voice.channel) {
+        message.channel.send("노래가 시작됩니다.")
+        const connection = await message.member.voice.channel.join();
+        let dispatcher = connection.play(
+          ytdl(`${_play}`, {
+            voluem: 0.5,
+          })
+        );
+
+        dispatcher.on("finish", () => {
+          message.channel.send("노래가 종료 되었습니다.");
+        });
+      } else {
+        message.reply("You need to join a voice channel first!");
+      }
+    } else {
+      message.channel.send("리스트에 노래가 없습니다.");
+    }
+  }
+  if (message.content.startsWith("*노래추가")) {
+    const XLSX = require("xlsx");
+    const workbook = XLSX.readFile("music.xlsx");
+
+    var ws = workbook.Sheets[workbook.SheetNames[0]];
+    let i = ws["B1"].v;
+    if (message.content.charAt(0) === "*") {
+      message.content = message.content.substr(1);
+    }
+    if (message.content.charAt(0) === "노") {
+      message.content = message.content.substr(1);
+    }
+    if (message.content.charAt(0) === "래") {
+      message.content = message.content.substr(1);
+    }
+    if (message.content.charAt(0) === "추") {
+      message.content = message.content.substr(1);
+    }
+    if (message.content.charAt(0) === "가") {
+      message.content = message.content.substr(1);
+    }
+    if (i === 11) {
+      message.channel.send("대기열이 가득 찼습니다.");
+    } else {
+      ws[`A${i}`].v = message.content;
+      i++;    
+      ws["B1"].v = i;
+      XLSX.writeFile(workbook, "music.xlsx");
+      message.channel.send("대기열에 노래가 추가되었습니다.")
+    }
+
+  }
+  if (message.content === "*노래리스트") {
+    const XLSX = require("xlsx");
+    const workbook = XLSX.readFile("music.xlsx");
+
+    var ws = workbook.Sheets[workbook.SheetNames[0]];
+    const embed = new MessageEmbed()
+      .setTitle("노래 목록")
+      .setColor(0x9986ee)
+      .addField("1번째노래", `${ws["A1"].v}`)
+      .addField("2번째노래", `${ws["A2"].v}`)
+      .addField("3번째노래", `${ws["A3"].v}`)
+      .addField("4번째노래", `${ws["A4"].v}`)
+      .addField("5번째노래", `${ws["A5"].v}`)
+      .addField("6번째노래", `${ws["A6"].v}`)
+      .addField("7번째노래", `${ws["A7"].v}`)
+      .addField("8번째노래", `${ws["A8"].v}`)
+      .addField("9번째노래", `${ws["A9"].v}`)
+      .addField("10번째노래", `${ws["A10"].v}`);
+    message.channel.send(embed);
+  }
+});
 client.login(token.token);
 
 //XLSX.writeFile(workbook, 'astory.xlsx');
